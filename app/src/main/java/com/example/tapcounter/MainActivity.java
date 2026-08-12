@@ -21,6 +21,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         startBtn = findViewById(R.id.start_overlay_btn);
+        Button settingsBtn = findViewById(R.id.settings_btn);
+        Button stopBtn = findViewById(R.id.stop_overlay_btn);
+
         startBtn.setOnClickListener(v -> {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 if (!Settings.canDrawOverlays(this)) {
@@ -33,6 +36,15 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 startFloatingService();
             }
+        });
+
+        settingsBtn.setOnClickListener(v -> {
+            startActivity(new Intent(this, SettingsActivity.class));
+        });
+
+        stopBtn.setOnClickListener(v -> {
+            stopService(new Intent(this, FloatingService.class));
+            Toast.makeText(this, "Overlay stopped", Toast.LENGTH_SHORT).show();
         });
     }
 
