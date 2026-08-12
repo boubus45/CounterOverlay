@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="32dp"
+    android:background="@color/purple_500">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tap Counter Overlay"
+        android:textColor="@android:color/white"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="12dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="1. Grant overlay permission
+2. Press Start Overlay
+3. Tap the floating widget to count
+4. Drag the widget to move it
+5. Press the reset button to clear"
+        android:textColor="@android:color/white"
+        android:textSize="15sp"
+        android:gravity="center"
+        android:lineSpacingMultiplier="1.4"
+        android:layout_marginBottom="40dp" />
+
+    <Button
+        android:id="@+id/start_overlay_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Start Overlay"
+        android:textSize="18sp"
+        android:paddingHorizontal="40dp"
+        android:paddingVertical="14dp" />
+
+</LinearLayout>
