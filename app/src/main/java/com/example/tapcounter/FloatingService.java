@@ -12,20 +12,22 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class FloatingService extends Service {
 
+    private static final String TAG = "FloatingService";
     private WindowManager windowManager;
     private View widgetView;
     private TextView counterText;
     private TextView resetBtn;
-    private TextView dragHint;
 
     private int counter = 0;
     private WindowManager.LayoutParams widgetParams;
@@ -38,6 +40,7 @@ public class FloatingService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.d(TAG, "onCreate called");
         windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
         createNotificationChannel();
         startForeground(1, buildNotification());
@@ -46,6 +49,7 @@ public class FloatingService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d(TAG, "onStartCommand called");
         return START_STICKY;
     }
 
@@ -78,11 +82,18 @@ public class FloatingService extends Service {
     }
 
     private void initWidget() {
-        widgetView = LayoutInflater.from(this).inflate(R.layout.floating_widget, null);
+        try {
+            widgetView = LayoutInflater.from(this).inflate(R.layout.floating_widget, null);
+            Log.d(TAG, "Widget inflated successfully");
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to inflate widget: " + e.getMessage(), e);
+            Toast.makeText(this, "Error creating overlay: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            stopSelf();
+            return;
+        }
 
         counterText = widgetView.findViewById(R.id.counter_text);
         resetBtn = widgetView.findViewById(R.id.reset_btn);
-        dragHint = widgetView.findViewById(R.id.drag_hint);
 
         counterText.setText("0");
 
@@ -106,7 +117,17 @@ public class FloatingService extends Service {
         widgetParams.x = 50;
         widgetParams.y = 150;
 
-        windowManager.addView(widgetView, widgetParams);
+        try {
+            windowManager.addView(widgetView, widgetParams);
+            Log.d(TAG, "Widget added to window manager");
+            Toast.makeText(this, "Counter overlay active", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to add widget: " + e.getMessage(), e);
+            Toast.makeText(this, "Overlay error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            stopSelf();
+            return;
+        }
+
         setupTouchHandling();
     }
 
@@ -180,8 +201,13 @@ public class FloatingService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        Log.d(TAG, "onDestroy called");
         if (widgetView != null && widgetView.getParent() != null) {
-            windowManager.removeView(widgetView);
+            try {
+                windowManager.removeView(widgetView);
+            } catch (Exception e) {
+                Log.e(TAG, "Error removing widget: " + e.getMessage());
+            }
         }
     }
 
