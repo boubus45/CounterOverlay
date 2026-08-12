@@ -39,8 +39,13 @@ public class MainActivity extends AppCompatActivity {
         } else {
             startService(intent);
         }
-        Toast.makeText(this, "Counter overlay started", Toast.LENGTH_SHORT).show();
-        finish();
+        Toast.makeText(this, "Counter overlay starting...", Toast.LENGTH_SHORT).show();
+        // Don't finish immediately - let the service stabilize first
+        startBtn.postDelayed(() -> {
+            if (!isFinishing()) {
+                finish();
+            }
+        }, 1500);
     }
 
     @Override
