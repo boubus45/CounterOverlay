@@ -7,6 +7,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.os.Build;
 import android.os.Handler;
@@ -28,8 +29,10 @@ public class FloatingService extends Service {
     private View widgetView;
     private TextView counterText;
     private TextView resetBtn;
+    private TextView closeBtn;
 
     private int counter = 0;
+    private int incrementAmount = 1;
     private WindowManager.LayoutParams widgetParams;
 
     private float initialX, initialY;
@@ -42,6 +45,11 @@ public class FloatingService extends Service {
         super.onCreate();
         Log.d(TAG, "onCreate called");
         windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+
+        SharedPreferences prefs = getSharedPreferences(SettingsActivity.PREFS_NAME, MODE_PRIVATE);
+        incrementAmount = prefs.getInt(SettingsActivity.KEY_INCREMENT, SettingsActivity.DEFAULT_INCREMENT);
+        Log.d(TAG, "Increment amount: " + incrementAmount);
+
         createNotificationChannel();
         startForeground(1, buildNotification());
         initWidget();
@@ -63,9 +71,14 @@ public class FloatingService extends Service {
     }
 
     private Notification buildNotification() {
-        Intent intent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(
-                this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+        Intent openIntent = new Intent(this, MainActivity.class);
+        PendingIntent openPending = PendingIntent.getActivity(
+                this, 0, openIntent, PendingIntent.FLAG_IMMUTABLE);
+
+        Intent closeIntent = new Intent(this, FloatingService.class);
+        closeIntent.setAction("STOP_SERVICE");
+        PendingIntent closePending = PendingIntent.getService(
+                this, 1, closeIntent, PendingIntent.FLAG_IMMUTABLE);
 
         Notification.Builder builder;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -73,12 +86,27 @@ public class FloatingService extends Service {
         } else {
             builder = new Notification.Builder(this);
         }
+
+        Notification.Action closeAction = new Notification.Action.Builder(
+                android.R.drawable.ic_menu_close_clear_cancel,
+                "Close",
+                closePending).build();
+
         return builder
                 .setContentTitle("Tap Counter")
-                .setContentText("Overlay is active - tap widget to count")
+                .setContentText("Overlay active - tap widget to count")
                 .setSmallIcon(android.R.drawable.ic_menu_info_details)
-                .setContentIntent(pendingIntent)
+                .setContentIntent(openPending)
+                .addAction(closeAction)
                 .build();
+    }
+
+    @Override
+    public void onStart(Intent intent, int startId) {
+        super.onStart(intent, startId);
+        if (intent != null && "STOP_SERVICE".equals(intent.getAction())) {
+            stopSelf();
+        }
     }
 
     private void initWidget() {
@@ -94,6 +122,7 @@ public class FloatingService extends Service {
 
         counterText = widgetView.findViewById(R.id.counter_text);
         resetBtn = widgetView.findViewById(R.id.reset_btn);
+        closeBtn = widgetView.findViewById(R.id.close_btn);
 
         counterText.setText("0");
 
@@ -101,6 +130,11 @@ public class FloatingService extends Service {
             counter = 0;
             updateCounter();
             animateReset();
+        });
+
+        closeBtn.setOnClickListener(v -> {
+            Toast.makeText(this, "Closing overlay", Toast.LENGTH_SHORT).show();
+            stopSelf();
         });
 
         int type = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
@@ -120,7 +154,7 @@ public class FloatingService extends Service {
         try {
             windowManager.addView(widgetView, widgetParams);
             Log.d(TAG, "Widget added to window manager");
-            Toast.makeText(this, "Counter overlay active", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Counter overlay active (+", incrementAmount + "/tap)", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             Log.e(TAG, "Failed to add widget: " + e.getMessage(), e);
             Toast.makeText(this, "Overlay error: " + e.getMessage(), Toast.LENGTH_LONG).show();
@@ -156,7 +190,7 @@ public class FloatingService extends Service {
 
                 case MotionEvent.ACTION_UP:
                     if (!isDragging) {
-                        counter++;
+                        counter += incrementAmount;
                         updateCounter();
                         animateCount();
                     }
