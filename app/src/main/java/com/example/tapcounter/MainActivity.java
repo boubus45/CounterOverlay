@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
 import android.widget.Button;
 import android.widget.Toast;
@@ -11,12 +13,14 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
 
+    private Button startBtn;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Button startBtn = findViewById(R.id.start_overlay_btn);
+        startBtn = findViewById(R.id.start_overlay_btn);
         startBtn.setOnClickListener(v -> {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 if (!Settings.canDrawOverlays(this)) {
@@ -40,8 +44,7 @@ public class MainActivity extends AppCompatActivity {
             startService(intent);
         }
         Toast.makeText(this, "Counter overlay starting...", Toast.LENGTH_SHORT).show();
-        // Don't finish immediately - let the service stabilize first
-        startBtn.postDelayed(() -> {
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
             if (!isFinishing()) {
                 finish();
             }
