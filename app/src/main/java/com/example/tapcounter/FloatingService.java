@@ -154,7 +154,7 @@ public class FloatingService extends Service {
         try {
             windowManager.addView(widgetView, widgetParams);
             Log.d(TAG, "Widget added to window manager");
-            Toast.makeText(this, "Counter overlay active (+", incrementAmount + "/tap)", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Counter overlay active (+" + incrementAmount + "/tap)", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             Log.e(TAG, "Failed to add widget: " + e.getMessage(), e);
             Toast.makeText(this, "Overlay error: " + e.getMessage(), Toast.LENGTH_LONG).show();
